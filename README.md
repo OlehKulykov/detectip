@@ -1,1 +1,1 @@
-# detectip
+# Detect IP
