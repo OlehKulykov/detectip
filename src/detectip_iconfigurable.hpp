@@ -21,25 +21,24 @@
 // SOFTWARE.
 
 
-#ifndef __DETECTIP_RAPID_JSON_PARSER_HPP__
-#define __DETECTIP_RAPID_JSON_PARSER_HPP__ 1
+#ifndef __DETECTIP_ICONFIGURABLE_HPP__
+#define __DETECTIP_ICONFIGURABLE_HPP__ 1
 
-#include <exception>
-#include <vector>
 #include <memory>
 
-#include "detectip_rapidjson.hpp"
+#include "detectip_iconfig.hpp"
 
 namespace DetectIP {
     
-    class RapidJsonParser {
-    protected:
-        std::shared_ptr<rapidjson::Document> parseJson(const std::vector<uint8_t> & jsonData);
-        
+    class IConfigurable {
     public:
-        virtual ~RapidJsonParser() noexcept = default;
+        virtual std::shared_ptr<IConfig> config() const noexcept = 0;
+        
+        virtual void setConfig(const std::shared_ptr<IConfig> &) = 0;
+        
+        virtual ~IConfigurable() noexcept = default;
     };
     
 } // namespace DetectIP
 
-#endif // !__DETECTIP_RAPID_JSON_PARSER_HPP__
+#endif // !__DETECTIP_ICONFIGURABLE_HPP__

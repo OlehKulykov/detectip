@@ -42,40 +42,53 @@ message("CURL include dir: ${CURL_INCLUDE_DIRS}")
 message("CURL libraries: ${CURL_LIBRARIES}")
 message("CURL_USE_STATIC_LIBS: ${CURL_USE_STATIC_LIBS}")
 
+find_package(ZLIB REQUIRED)
+message("ZLIB include dir: ${ZLIB_INCLUDE_DIRS}")
+message("ZLIB libraries: ${ZLIB_LIBRARIES}")
+
 include_directories(BEFORE SYSTEM ${CURL_INCLUDE_DIRS})
+include_directories(BEFORE SYSTEM ${ZLIB_INCLUDE_DIRS})
 
 # ---- Sources & headers ----
 
 set(DETECTIP_HEADERS
-  src/detectip_curl_downloader.hpp
+  src/detectip_config.hpp
+  src/detectip_detector.hpp
+  src/detectip_detectors_bigdatacloud.hpp
+  src/detectip_detectors_ip_api_com.hpp
   src/detectip_detectors_ipify_org.hpp
+  src/detectip_detectors_ipinfo_io.hpp
+  src/detectip_detectors_iplocation_net.hpp
+  src/detectip_detectors_ipy_ch.hpp
   src/detectip_detectors_jsonip_com.hpp
   src/detectip_detectors_my_ip_io.hpp
-  src/detectip_detectors_ip_api_com.hpp
   src/detectip_detectors_seeip_org.hpp
-  src/detectip_detectors_bigdatacloud.hpp
-  src/detectip_detectors_iplocation_net.hpp
-  src/detectip_detectors_ipinfo_io.hpp
-  src/detectip_detectors_ipy_ch.hpp
-  src/detectip_detector.hpp
-  src/detectip_rapid_json_parser.hpp
+  src/detectip_detectors_whatismyip_com.hpp
+  src/detectip_http_requestable.hpp
+  src/detectip_iconfig.hpp
+  src/detectip_iconfigurable.hpp
   src/detectip_rapidjson.hpp
+  src/detectip_rapidjson_parser.hpp
+  src/detectip_detectors_dyndns_com.hpp
 )
 
 set(DETECTIP_SOURCES
-  src/main.cpp
-  src/detectip_curl_downloader.cpp
+  src/detectip_config.cpp
+  src/detectip_detector.cpp
+  src/detectip_detectors_bigdatacloud.cpp
+  src/detectip_detectors_ip_api_com.cpp
   src/detectip_detectors_ipify_org.cpp
+  src/detectip_detectors_ipinfo_io.cpp
+  src/detectip_detectors_iplocation_net.cpp
+  src/detectip_detectors_ipy_ch.cpp
   src/detectip_detectors_jsonip_com.cpp
   src/detectip_detectors_my_ip_io.cpp
-  src/detectip_detectors_ip_api_com.cpp
   src/detectip_detectors_seeip_org.cpp
-  src/detectip_detectors_bigdatacloud.cpp
-  src/detectip_detectors_iplocation_net.cpp
-  src/detectip_detectors_ipinfo_io.cpp
-  src/detectip_detectors_ipy_ch.cpp
-  src/detectip_detector.cpp
-  src/detectip_rapid_json_parser.cpp
+  src/detectip_detectors_whatismyip_com.cpp
+  src/detectip_http_requestable.cpp
+  src/detectip_rapidjson_parser.cpp
+  src/detectip_detectors_dyndns_com.cpp
+  src/main.cpp
 )
 
 # ---- Groups ----
@@ -83,32 +96,41 @@ set(DETECTIP_SOURCES
 source_group("main"
   FILES
   src/main.cpp
-  src/detectip_curl_downloader.cpp
-  src/detectip_curl_downloader.hpp
+  src/detectip_config.cpp
+  src/detectip_config.hpp
+  src/detectip_detector.cpp
+  src/detectip_detector.hpp
+  src/detectip_detectors_bigdatacloud.cpp
+  src/detectip_detectors_bigdatacloud.hpp
+  src/detectip_detectors_ip_api_com.cpp
+  src/detectip_detectors_ip_api_com.hpp
   src/detectip_detectors_ipify_org.cpp
   src/detectip_detectors_ipify_org.hpp
+  src/detectip_detectors_ipinfo_io.cpp
+  src/detectip_detectors_ipinfo_io.hpp
+  src/detectip_detectors_iplocation_net.cpp
+  src/detectip_detectors_iplocation_net.hpp
+  src/detectip_detectors_ipy_ch.cpp
+  src/detectip_detectors_ipy_ch.hpp
   src/detectip_detectors_jsonip_com.cpp
   src/detectip_detectors_jsonip_com.hpp
   src/detectip_detectors_my_ip_io.cpp
   src/detectip_detectors_my_ip_io.hpp
-  src/detectip_detectors_ip_api_com.cpp
-  src/detectip_detectors_ip_api_com.hpp
   src/detectip_detectors_seeip_org.cpp
   src/detectip_detectors_seeip_org.hpp
-  src/detectip_detectors_bigdatacloud.cpp
-  src/detectip_detectors_bigdatacloud.hpp
-  src/detectip_detectors_iplocation_net.cpp
-  src/detectip_detectors_iplocation_net.hpp
-  src/detectip_detectors_ipinfo_io.cpp
-  src/detectip_detectors_ipinfo_io.hpp
-  src/detectip_detectors_ipy_ch.cpp
-  src/detectip_detectors_ipy_ch.hpp
-  src/detectip_detector.cpp
-  src/detectip_detector.hpp
-  src/detectip_rapid_json_parser.cpp
-  src/detectip_rapid_json_parser.hpp
+  src/detectip_detectors_whatismyip_com.cpp
+  src/detectip_detectors_whatismyip_com.hpp
+  src/detectip_http_requestable.cpp
+  src/detectip_http_requestable.hpp
+  src/detectip_iconfig.hpp
+  src/detectip_iconfigurable.hpp
   src/detectip_rapidjson.hpp
+  src/detectip_rapidjson_parser.cpp
+  src/detectip_rapidjson_parser.hpp
+  src/detectip_detectors_dyndns_com.cpp
+  src/detectip_detectors_dyndns_com.hpp
  )
 
 add_executable(${DETECTIP_APP} ${DETECTIP_HEADERS} ${DETECTIP_SOURCES})
 target_link_libraries(${DETECTIP_APP} ${CURL_LIBRARIES})
+target_link_libraries(${DETECTIP_APP} ${ZLIB_LIBRARIES})

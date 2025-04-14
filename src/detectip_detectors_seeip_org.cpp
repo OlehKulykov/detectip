@@ -24,16 +24,22 @@
 #include <memory>
 
 #include "detectip_detectors_seeip_org.hpp"
+#include "detectip_rapidjson.hpp"
 
 namespace DetectIP {
 namespace Detectors {
     
-    std::pair<std::string, std::string> SeeipOrg::detect() {
-        std::pair<std::string, std::string> ips;
+    Detector::Result SeeipOrg::detect() {
+        const auto config = this->config();
+        if (!config) {
+            throw std::runtime_error("No config");
+        }
+        
+        Detector::Result ips;
         
         for (size_t i = 0; i < 2; i++) {
-            const auto response = get(i ? "https://ipv6.seeip.org/jsonip" : "https://ipv4.seeip.org/jsonip");
-            const auto doc = parseJson(response);
+            const auto response = GET(i ? config->get("j", "b") : config->get("j", "a"));
+            const std::shared_ptr<RJDocument> doc(static_cast<RJDocument *>(parseJson(response)));
             const auto ipIt = doc->FindMember("ip");
             if (i) {
                 ips.second = validateIPv6(ipIt->value.IsString() ? ipIt->value.GetString() : nullptr);
@@ -47,4 +53,3 @@ namespace Detectors {
     
 } // namespace Detectors
 } // namespace DetectIP
-

@@ -21,35 +21,32 @@
 // SOFTWARE.
 
 
-#include <memory>
+#ifndef __DETECTIP_HTTPREQUESTABLE_HPP__
+#define __DETECTIP_HTTPREQUESTABLE_HPP__ 1
 
-#include "detectip_detectors_jsonip_com.hpp"
-#include "detectip_rapidjson.hpp"
+#include <exception>
+#include <vector>
+
+#include "detectip_iconfigurable.hpp"
 
 namespace DetectIP {
-namespace Detectors {
     
-    Detector::Result JsonIpCom::detect() {
-        const auto config = this->config();
-        if (!config) {
-            throw std::runtime_error("No config");
-        }
+    class HTTPRequestable : virtual public IConfigurable {
+    private:
+        static size_t writeCallback(char * contents, size_t size, size_t nmemb, void * userp) noexcept;
+        static bool _isRequireGlobalInit;
         
-        Detector::Result ips;
+    public:
+        std::vector<uint8_t> GET(const std::string & url);
         
-        for (size_t i = 0; i < 2; i++) {
-            const auto response = GET(i ? config->get("h", "b") : config->get("h", "a"));
-            const std::shared_ptr<RJDocument> doc(static_cast<RJDocument *>(parseJson(response)));
-            const auto ipIt = doc->FindMember("ip");
-            if (i) {
-                ips.second = validateIPv6(ipIt->value.IsString() ? ipIt->value.GetString() : nullptr);
-            } else {
-                ips.first = validateIPv4(ipIt->value.IsString() ? ipIt->value.GetString() : nullptr);
-            }
-        }
+        HTTPRequestable() noexcept;
         
-        return ips;
-    }
+        virtual ~HTTPRequestable() noexcept = default;
+        
+        static void globalInit() noexcept;
+        static void globalDeinit() noexcept;
+    };
     
-} // namespace Detectors
 } // namespace DetectIP
+
+#endif // !__DETECTIP_HTTPREQUESTABLE_HPP__

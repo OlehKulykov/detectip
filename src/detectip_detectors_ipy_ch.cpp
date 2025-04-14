@@ -24,16 +24,22 @@
 #include <memory>
 
 #include "detectip_detectors_ipy_ch.hpp"
+#include "detectip_rapidjson.hpp"
 
 namespace DetectIP {
 namespace Detectors {
     
-    std::pair<std::string, std::string> IpyCh::detect() {
-        const auto response = get("https://api.ipy.ch?format=json");
-        const auto doc = parseJson(response);
+    Detector::Result IpyCh::detect() {
+        const auto config = this->config();
+        if (!config) {
+            throw std::runtime_error("No config");
+        }
+        
+        const auto response = GET(config->get("g", "a"));
+        const std::shared_ptr<RJDocument> doc(static_cast<RJDocument *>(parseJson(response)));
         const auto ipIt = doc->FindMember("ip");
         
-        std::pair<std::string, std::string> ips;
+        Detector::Result ips;
         
         if (ipIt->value.IsString()) {
             auto ip = validateIPv4(ipIt->value.GetString());
@@ -49,4 +55,3 @@ namespace Detectors {
     
 } // namespace Detectors
 } // namespace DetectIP
-

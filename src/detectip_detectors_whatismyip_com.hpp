@@ -21,35 +21,28 @@
 // SOFTWARE.
 
 
-#include <memory>
+#ifndef __DETECTIP_DETECTORS_WHATISMYIP_COM_HPP__
+#define __DETECTIP_DETECTORS_WHATISMYIP_COM_HPP__ 1
 
-#include "detectip_detectors_jsonip_com.hpp"
-#include "detectip_rapidjson.hpp"
+#include <exception>
+
+#include "detectip_detector.hpp"
+#include "detectip_http_requestable.hpp"
+#include "detectip_rapidjson_parser.hpp"
 
 namespace DetectIP {
 namespace Detectors {
     
-    Detector::Result JsonIpCom::detect() {
-        const auto config = this->config();
-        if (!config) {
-            throw std::runtime_error("No config");
-        }
+    class WhatIsMyIpCom final : public Detector, protected HTTPRequestable, protected RapidJsonParser {
+    public:
+        /// IDetector
+        virtual Detector::Result detect() override final;
         
-        Detector::Result ips;
-        
-        for (size_t i = 0; i < 2; i++) {
-            const auto response = GET(i ? config->get("h", "b") : config->get("h", "a"));
-            const std::shared_ptr<RJDocument> doc(static_cast<RJDocument *>(parseJson(response)));
-            const auto ipIt = doc->FindMember("ip");
-            if (i) {
-                ips.second = validateIPv6(ipIt->value.IsString() ? ipIt->value.GetString() : nullptr);
-            } else {
-                ips.first = validateIPv4(ipIt->value.IsString() ? ipIt->value.GetString() : nullptr);
-            }
-        }
-        
-        return ips;
-    }
+        WhatIsMyIpCom() = default;
+        virtual ~WhatIsMyIpCom() noexcept = default;
+    };
     
 } // namespace Detectors
 } // namespace DetectIP
+
+#endif // !__DETECTIP_DETECTORS_WHATISMYIP_COM_HPP__

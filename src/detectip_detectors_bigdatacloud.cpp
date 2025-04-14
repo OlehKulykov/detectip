@@ -25,16 +25,22 @@
 #include <strings.h>
 
 #include "detectip_detectors_bigdatacloud.hpp"
+#include "detectip_rapidjson.hpp"
 
 namespace DetectIP {
 namespace Detectors {
     
-    std::pair<std::string, std::string> BigDataCloud::detect() {
-        std::pair<std::string, std::string> ips;
+    Detector::Result BigDataCloud::detect() {
+        const auto config = this->config();
+        if (!config) {
+            throw std::runtime_error("No config");
+        }
+        
+        Detector::Result ips;
         
         for (size_t i = 0; i < 2; i++) {
-            const auto response = get(i ? "https://api-bdc.net/data/client-ip" : "https://api.bigdatacloud.net/data/client-ip");
-            const auto doc = parseJson(response);
+            const auto response = GET(i ? config->get("b", "b") : config->get("b", "a"));
+            const std::shared_ptr<RJDocument> doc(static_cast<RJDocument *>(parseJson(response)));
             const auto ipIt = doc->FindMember("ipString");
             const auto typeIt = doc->FindMember("ipType");
             const char * typeStr = typeIt->value.IsString() ? typeIt->value.GetString() : "";

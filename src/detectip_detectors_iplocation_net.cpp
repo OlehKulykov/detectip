@@ -24,16 +24,22 @@
 #include <memory>
 
 #include "detectip_detectors_iplocation_net.hpp"
+#include "detectip_rapidjson.hpp"
 
 namespace DetectIP {
 namespace Detectors {
     
-    std::pair<std::string, std::string> IpLocationNet::detect() {
-        std::pair<std::string, std::string> ips;
+    Detector::Result IpLocationNet::detect() {
+        const auto config = this->config();
+        if (!config) {
+            throw std::runtime_error("No config");
+        }
+        
+        Detector::Result ips;
         
         for (size_t i = 0; i < 2; i++) {
-            const auto response = get(i ? "https://api.iplocation.net/?cmd=get-ip" : "https://ipv4.iplocation.net");
-            const auto doc = parseJson(response);
+            const auto response = GET(i ? config->get("f", "b") : config->get("f", "a"));
+            const std::shared_ptr<RJDocument> doc(static_cast<RJDocument *>(parseJson(response)));
             const auto ipIt = doc->FindMember("ip");
             const auto versionId = doc->FindMember("ip_version");
             if (i) {
@@ -50,4 +56,3 @@ namespace Detectors {
     
 } // namespace Detectors
 } // namespace DetectIP
-

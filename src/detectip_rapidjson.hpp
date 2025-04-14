@@ -24,12 +24,47 @@
 #ifndef __DETECTIP_RAPIDJSON_HPP__
 #define __DETECTIP_RAPIDJSON_HPP__ 1
 
+#include <sstream>
+#include <ostream>
+#include <climits>
+#include <exception>
+#include <cstddef>
+#include <memory>
+#include <vector>
+#include <string>
+
+#define RAPIDJSON_NAMESPACE DetectIPRJ
+#define RAPIDJSON_NO_SIZETYPEDEFINE 1
+#define RAPIDJSON_HAS_STDSTRING 1
+
+#if defined(__SSE4_2__)
+#define RAPIDJSON_SSE42 1
+#elif defined(__SSE2__)
+#define RAPIDJSON_SSE2 1
+#endif
+
+namespace DetectIPRJ {
+    
+    typedef size_t SizeType;
+    
+} // namespace DetectIPRJ
+
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
 #include "rapidjson/allocators.h"
+#include "rapidjson/encodings.h"
+
 #include "rapidjson/reader.h"
-#include "rapidjson/writer.h"
+#include "rapidjson/stream.h"
 #include "rapidjson/stringbuffer.h"
-#include "rapidjson/prettywriter.h"
+#include "rapidjson/filereadstream.h"
+#include "rapidjson/schema.h"
+
+namespace DetectIP {
+    
+    typedef DetectIPRJ::GenericDocument<DetectIPRJ::UTF8<>, DetectIPRJ::CrtAllocator> RJDocument;
+    typedef DetectIPRJ::GenericValue<DetectIPRJ::UTF8<>, DetectIPRJ::CrtAllocator> RJValue;
+    
+} // namespace DetectIP
 
 #endif // !__DETECTIP_RAPIDJSON_HPP__

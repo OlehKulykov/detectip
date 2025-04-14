@@ -26,17 +26,17 @@
 
 #include <exception>
 
-#include "detectip_curl_downloader.hpp"
 #include "detectip_detector.hpp"
-#include "detectip_rapid_json_parser.hpp"
+#include "detectip_http_requestable.hpp"
+#include "detectip_rapidjson_parser.hpp"
 
 namespace DetectIP {
 namespace Detectors {
     
-    class IpInfoIo final : public Detector, protected CURLDownloader, protected RapidJsonParser {
+    class IpInfoIo final : public Detector, protected HTTPRequestable, protected RapidJsonParser {
     public:
         /// IDetector
-        virtual std::pair<std::string, std::string> detect() override final;
+        virtual Detector::Result detect() override final;
         
         IpInfoIo() = default;
         virtual ~IpInfoIo() noexcept = default;

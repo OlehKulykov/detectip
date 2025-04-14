@@ -21,35 +21,36 @@
 // SOFTWARE.
 
 
+#include <sstream>
 #include <memory>
 
-#include "detectip_detectors_jsonip_com.hpp"
+#include "detectip_rapidjson_parser.hpp"
 #include "detectip_rapidjson.hpp"
 
 namespace DetectIP {
-namespace Detectors {
     
-    Detector::Result JsonIpCom::detect() {
-        const auto config = this->config();
-        if (!config) {
-            throw std::runtime_error("No config");
+    void * RapidJsonParser::parseJson(const std::vector<uint8_t> & jsonData) {
+        std::unique_ptr<RJDocument> doc(new RJDocument());
+        
+        if (jsonData.empty()) {
+            return doc.release();
         }
         
-        Detector::Result ips;
+        doc->Parse(reinterpret_cast<const char *>(jsonData.data()), jsonData.size());
         
-        for (size_t i = 0; i < 2; i++) {
-            const auto response = GET(i ? config->get("h", "b") : config->get("h", "a"));
-            const std::shared_ptr<RJDocument> doc(static_cast<RJDocument *>(parseJson(response)));
-            const auto ipIt = doc->FindMember("ip");
-            if (i) {
-                ips.second = validateIPv6(ipIt->value.IsString() ? ipIt->value.GetString() : nullptr);
-            } else {
-                ips.first = validateIPv4(ipIt->value.IsString() ? ipIt->value.GetString() : nullptr);
-            }
+        if (doc->HasParseError()) {
+            std::stringstream errorStream;
+            errorStream << "[JSON] parse error: " << doc->GetParseError() << ", error offset: " << doc->GetErrorOffset() << std::endl;
+            throw std::runtime_error(errorStream.str());
         }
         
-        return ips;
+        if (!doc->IsObject()) {
+            std::stringstream errorStream;
+            errorStream << "[JSON] input is not a JSON" << std::endl;
+            throw std::runtime_error(errorStream.str());
+        }
+        
+        return doc.release();
     }
     
-} // namespace Detectors
 } // namespace DetectIP

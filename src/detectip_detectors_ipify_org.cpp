@@ -24,13 +24,19 @@
 #include <memory>
 
 #include "detectip_detectors_ipify_org.hpp"
+#include "detectip_rapidjson.hpp"
 
 namespace DetectIP {
 namespace Detectors {
     
-    std::pair<std::string, std::string> IpifyOrg::detect() {
-        const auto response = get("https://api.ipify.org/?format=json");
-        const auto doc = parseJson(response);
+    Detector::Result IpifyOrg::detect() {
+        const auto config = this->config();
+        if (!config) {
+            throw std::runtime_error("No config");
+        }
+        
+        const auto response = GET(config->get("d", "a"));
+        const std::shared_ptr<RJDocument> doc(static_cast<RJDocument *>(parseJson(response)));
         const auto ipIt = doc->FindMember("ip");
         return validate(ipIt->value.IsString() ? ipIt->value.GetString() : nullptr);
     }

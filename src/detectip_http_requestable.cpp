@@ -24,12 +24,20 @@
 #include <memory>
 #include <sstream>
 
-#include "detectip_curl_downloader.hpp"
+#include "detectip_http_requestable.hpp"
 #include <curl/curl.h>
 
 namespace DetectIP {
     
-    size_t CURLDownloader::writeCallback(char * contents, size_t size, size_t nmemb, void * userp) noexcept {
+    struct CURLDeleter final {
+        void operator()(CURL * curl) const {
+            if (curl) {
+                curl_easy_cleanup(curl);
+            }
+        }
+    };
+    
+    size_t HTTPRequestable::writeCallback(char * contents, size_t size, size_t nmemb, void * userp) noexcept {
         std::vector<uint8_t> & vector = *static_cast<std::vector<uint8_t> *>(userp);
         const size_t writeSize = size * nmemb;
         const size_t srcSize = vector.size();
@@ -51,39 +59,36 @@ namespace DetectIP {
         return writeSize;
     }
     
-    std::vector<uint8_t> CURLDownloader::get(const std::string & url) {
-        cleanup();
-        
-        CURL * curl = curl_easy_init();
-        if ( !(_impl = curl) ) {
-            throw std::runtime_error("[CURL] init");
+    std::vector<uint8_t> HTTPRequestable::GET(const std::string & url) {
+        std::shared_ptr<CURL> curl(curl_easy_init(), CURLDeleter());
+        if (!curl) {
+            throw std::runtime_error("[HTTP] init");
         }
         
         std::stringstream errorStream;
         const char * errorDescription;
         CURLcode res;
         
-        if ( (res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str())) != CURLE_OK ) {
-            cleanup();
-            errorStream << "[CURL] set url error code: " << res;
+        if ( (res = curl_easy_setopt(curl.get(), CURLOPT_URL, url.c_str())) != CURLE_OK ) {
+            errorStream << "[HTTP] set url error code: " << res;
             if ( (errorDescription = curl_easy_strerror(res)) ) {
                 errorStream << ", description: " << errorDescription;
             }
             errorStream << std::endl;
             throw std::runtime_error(errorStream.str());
         }
-        if ( (res = curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30)) != CURLE_OK ) {
-            cleanup();
-            errorStream << "[CURL] set timeout error code: " << res;
+        
+        if ( (res = curl_easy_setopt(curl.get(), CURLOPT_TIMEOUT, 30)) != CURLE_OK ) {
+            errorStream << "[HTTP] set timeout error code: " << res;
             if ( (errorDescription = curl_easy_strerror(res)) ) {
                 errorStream << ", description: " << errorDescription;
             }
             errorStream << std::endl;
             throw std::runtime_error(errorStream.str());
         }
-        if ( (res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CURLDownloader::writeCallback)) != CURLE_OK ) {
-            cleanup();
-            errorStream << "[CURL] set write function error code: " << res;
+        
+        if ( (res = curl_easy_setopt(curl.get(), CURLOPT_WRITEFUNCTION, HTTPRequestable::writeCallback)) != CURLE_OK ) {
+            errorStream << "[HTTP] set write function error code: " << res;
             if ( (errorDescription = curl_easy_strerror(res)) ) {
                 errorStream << ", description: " << errorDescription;
             }
@@ -93,18 +98,8 @@ namespace DetectIP {
         
         std::vector<uint8_t> responseData;
         
-        if ( (res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &responseData)) != CURLE_OK ) {
-            cleanup();
-            errorStream << "[CURL] set write data error code: " << res;
-            if ( (errorDescription = curl_easy_strerror(res)) ) {
-                errorStream << ", description: " << errorDescription;
-            }
-            errorStream << std::endl;
-            throw std::runtime_error(errorStream.str());
-        }
-        if ( (res = curl_easy_perform(curl)) != CURLE_OK ) {
-            cleanup();
-            errorStream << "[CURL] perform error code: " << res << ", url: " << url;
+        if ( (res = curl_easy_setopt(curl.get(), CURLOPT_WRITEDATA, &responseData)) != CURLE_OK ) {
+            errorStream << "[HTTP] set write data error code: " << res;
             if ( (errorDescription = curl_easy_strerror(res)) ) {
                 errorStream << ", description: " << errorDescription;
             }
@@ -112,29 +107,38 @@ namespace DetectIP {
             throw std::runtime_error(errorStream.str());
         }
         
-        cleanup();
+        if ( (res = curl_easy_perform(curl.get())) != CURLE_OK ) {
+            errorStream << "[HTTP] perform error code: " << res << ", url: " << url;
+            if ( (errorDescription = curl_easy_strerror(res)) ) {
+                errorStream << ", description: " << errorDescription;
+            }
+            errorStream << std::endl;
+            throw std::runtime_error(errorStream.str());
+        }
         
         return responseData;
     }
     
-    void CURLDownloader::cleanup() noexcept {
-        if (_impl) {
-            curl_easy_cleanup(static_cast<CURL *>(_impl));
-            _impl = nullptr;
-        }
+    HTTPRequestable::HTTPRequestable() noexcept {
+        HTTPRequestable::globalInit();
     }
     
-    CURLDownloader::CURLDownloader() noexcept {
+    bool HTTPRequestable::_isRequireGlobalInit = true;
+    
+    void HTTPRequestable::globalInit() noexcept {
         if (_isRequireGlobalInit) {
             curl_global_init(CURL_GLOBAL_ALL);
             _isRequireGlobalInit = false;
         }
     }
     
-    CURLDownloader::~CURLDownloader() noexcept {
-        cleanup();
+    void HTTPRequestable::globalDeinit() noexcept {
+        if (_isRequireGlobalInit) {
+            return;
+        }
+        
+        curl_global_cleanup();
+        _isRequireGlobalInit = true;
     }
-    
-    bool CURLDownloader::_isRequireGlobalInit = true;
     
 } // namespace DetectIP

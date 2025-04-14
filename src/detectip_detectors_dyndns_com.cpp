@@ -21,30 +21,44 @@
 // SOFTWARE.
 
 
+#include <sstream>
 #include <memory>
+#include <ctype.h>
 
-#include "detectip_detectors_jsonip_com.hpp"
-#include "detectip_rapidjson.hpp"
+#include "detectip_detectors_dyndns_com.hpp"
 
 namespace DetectIP {
 namespace Detectors {
     
-    Detector::Result JsonIpCom::detect() {
+    Detector::Result DynDnsCom::detect() {
+        Detector::Result ips;
+        
         const auto config = this->config();
         if (!config) {
             throw std::runtime_error("No config");
         }
         
-        Detector::Result ips;
-        
-        for (size_t i = 0; i < 2; i++) {
-            const auto response = GET(i ? config->get("h", "b") : config->get("h", "a"));
-            const std::shared_ptr<RJDocument> doc(static_cast<RJDocument *>(parseJson(response)));
-            const auto ipIt = doc->FindMember("ip");
-            if (i) {
-                ips.second = validateIPv6(ipIt->value.IsString() ? ipIt->value.GetString() : nullptr);
-            } else {
-                ips.first = validateIPv4(ipIt->value.IsString() ? ipIt->value.GetString() : nullptr);
+        {
+            auto response = GET(config->get("k", "a").c_str());
+            response.push_back(0);
+            const char * cStr = reinterpret_cast<const char *>(response.data());
+            while (*cStr) {
+                if (::isdigit(*cStr) != 0) {
+                    int i0 = -1, i1 = -1, i2 = -1, i3 = -1;
+                    if (::sscanf(cStr, "%i.%i.%i.%i", &i0, &i1, &i2, &i3) == 4) {
+                        if ((i0 >= 0) && (i0 < 256) && (i1 >= 0) && (i1 < 256) &&
+                            (i2 >= 0) && (i2 < 256) && (i3 >= 0) && (i3 < 256)) {
+                            char buff[128] = { 0 };
+                            snprintf(buff, 128, "%i.%i.%i.%i", i0, i1, i2, i3);
+                            auto str = validateIPv4(buff);
+                            if (!str.empty()) {
+                                ips.first = std::move(str);
+                                break;
+                            }
+                        }
+                    }
+                }
+                cStr++;
             }
         }
         

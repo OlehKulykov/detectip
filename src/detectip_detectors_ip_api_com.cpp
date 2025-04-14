@@ -24,17 +24,22 @@
 #include <memory>
 
 #include "detectip_detectors_ip_api_com.hpp"
+#include "detectip_rapidjson.hpp"
 
 namespace DetectIP {
 namespace Detectors {
     
-    std::pair<std::string, std::string> IpApiCom::detect() {
-        const auto response = get("http://ip-api.com/json");
-        const auto doc = parseJson(response);
+    Detector::Result IpApiCom::detect() {
+        const auto config = this->config();
+        if (!config) {
+            throw std::runtime_error("No config");
+        }
+        
+        const auto response = GET(config->get("c", "a"));
+        const std::shared_ptr<RJDocument> doc(static_cast<RJDocument *>(parseJson(response)));
         const auto ipIt = doc->FindMember("query");
         return validate(ipIt->value.IsString() ? ipIt->value.GetString() : nullptr);
     }
     
 } // namespace Detectors
 } // namespace DetectIP
-

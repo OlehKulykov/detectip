@@ -21,34 +21,26 @@
 // SOFTWARE.
 
 
-#include <sstream>
+#ifndef __DETECTIP_CONFIG_HPP__
+#define __DETECTIP_CONFIG_HPP__ 1
 
-#include "detectip_rapid_json_parser.hpp"
+#include <string>
+#include <unordered_map>
+
+#include "detectip_iconfig.hpp"
 
 namespace DetectIP {
     
-    std::shared_ptr<rapidjson::Document> RapidJsonParser::parseJson(const std::vector<uint8_t> & jsonData) {
-        auto doc = std::make_shared<rapidjson::Document>();
+    class Config final : public IConfig {
+    private:
+        mutable std::unordered_map<std::string, std::unordered_map<std::string, std::string> > _map;
         
-        if (jsonData.empty()) {
-            return doc;
-        }
+    public:
+        virtual std::string get(const char *, const char *) const override final;
         
-        doc->Parse(reinterpret_cast<const char *>(jsonData.data()), jsonData.size());
-        
-        if (doc->HasParseError()) {
-            std::stringstream errorStream;
-            errorStream << "[JSON] parse response error: " << doc->GetParseError() << ", error offset: " << doc->GetErrorOffset() << std::endl;
-            throw std::runtime_error(errorStream.str());
-        }
-        
-        if (!doc->IsObject()) {
-            std::stringstream errorStream;
-            errorStream << "[JSON] response is not a JSON" << std::endl;
-            throw std::runtime_error(errorStream.str());
-        }
-        
-        return doc;
-    }
+        virtual ~Config() noexcept = default;
+    };
     
 } // namespace DetectIP
+
+#endif // !__DETECTIP_CONFIG_HPP__

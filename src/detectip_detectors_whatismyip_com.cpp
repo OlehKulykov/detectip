@@ -21,30 +21,30 @@
 // SOFTWARE.
 
 
-#include <memory>
+#include <sstream>
 
-#include "detectip_detectors_jsonip_com.hpp"
+#include "detectip_detectors_whatismyip_com.hpp"
 #include "detectip_rapidjson.hpp"
 
 namespace DetectIP {
 namespace Detectors {
     
-    Detector::Result JsonIpCom::detect() {
+    Detector::Result WhatIsMyIpCom::detect() {
         const auto config = this->config();
         if (!config) {
             throw std::runtime_error("No config");
         }
         
+        const auto response = GET(config->get("a", "a").c_str());
+        const std::shared_ptr<RJDocument> doc(static_cast<RJDocument *>(parseJson(response)));
+        const auto ipIt = doc->FindMember("ip_address");
+        
         Detector::Result ips;
         
-        for (size_t i = 0; i < 2; i++) {
-            const auto response = GET(i ? config->get("h", "b") : config->get("h", "a"));
-            const std::shared_ptr<RJDocument> doc(static_cast<RJDocument *>(parseJson(response)));
-            const auto ipIt = doc->FindMember("ip");
-            if (i) {
-                ips.second = validateIPv6(ipIt->value.IsString() ? ipIt->value.GetString() : nullptr);
-            } else {
-                ips.first = validateIPv4(ipIt->value.IsString() ? ipIt->value.GetString() : nullptr);
+        if (ipIt->value.IsString()) {
+            ips.first = validateIPv4(ipIt->value.GetString());
+            if (ips.first.empty()) {
+                ips.second = validateIPv6(ipIt->value.GetString());
             }
         }
         

@@ -25,19 +25,34 @@
 #define __DETECTIP_DETECTOR_HPP__ 1
 
 #include <string>
+#include <memory>
+
+#include "detectip_iconfigurable.hpp"
 
 namespace DetectIP {
     
-    class Detector {
+    class Detector : virtual public IConfigurable {
+    public:
+        typedef std::pair<std::string, std::string> Result;
+        
+    private:
+        std::shared_ptr<IConfig> _config;
+        
     protected:
         std::string validateIPv4(const char * ipv4);
         std::string validateIPv6(const char * ipv6);
-        std::pair<std::string, std::string>validate(const char * ipv4, const char * ipv6 = nullptr) {
+        
+        Result validate(const char * ipv4, const char * ipv6 = nullptr) {
             return std::pair<std::string, std::string>(validateIPv4(ipv4), validateIPv6(ipv6));
         }
         
     public:
-        virtual std::pair<std::string, std::string> detect() = 0;
+        virtual Result detect() = 0;
+        
+        /// IConfigurable
+        virtual std::shared_ptr<IConfig> config() const noexcept override final;
+        
+        virtual void setConfig(const std::shared_ptr<IConfig> & config) override final;
         
         virtual ~Detector() noexcept = default;
     };

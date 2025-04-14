@@ -24,17 +24,22 @@
 #include <memory>
 
 #include "detectip_detectors_ipinfo_io.hpp"
+#include "detectip_rapidjson.hpp"
 
 namespace DetectIP {
 namespace Detectors {
     
-    std::pair<std::string, std::string> IpInfoIo::detect() {
-        const auto response = get("https://ipinfo.io/json");
-        const auto doc = parseJson(response);
+    Detector::Result IpInfoIo::detect() {
+        const auto config = this->config();
+        if (!config) {
+            throw std::runtime_error("No config");
+        }
+        
+        const auto response = GET(config->get("e", "a"));
+        const std::shared_ptr<RJDocument> doc(static_cast<RJDocument *>(parseJson(response)));
         const auto ipIt = doc->FindMember("ip");
         return validate(ipIt->value.IsString() ? ipIt->value.GetString() : nullptr);
     }
     
 } // namespace Detectors
 } // namespace DetectIP
-

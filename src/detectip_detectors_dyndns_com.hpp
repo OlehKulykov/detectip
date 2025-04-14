@@ -21,31 +21,28 @@
 // SOFTWARE.
 
 
-#ifndef __DETECTIP_CURL_DOWNLOADER_HPP__
-#define __DETECTIP_CURL_DOWNLOADER_HPP__ 1
+#ifndef __DETECTIP_DETECTORS_DYNDNS_COM_HPP__
+#define __DETECTIP_DETECTORS_DYNDNS_COM_HPP__ 1
 
 #include <exception>
-#include <vector>
+
+#include "detectip_detector.hpp"
+#include "detectip_http_requestable.hpp"
+#include "detectip_rapidjson_parser.hpp"
 
 namespace DetectIP {
+namespace Detectors {
     
-    class CURLDownloader {
-    private:
-        void * _impl = nullptr;
-        
-        void cleanup() noexcept;
-        
-        static size_t writeCallback(char * contents, size_t size, size_t nmemb, void * userp) noexcept;
-        static bool _isRequireGlobalInit;
-        
-    protected:
-        std::vector<uint8_t> get(const std::string & url);
-        
+    class DynDnsCom final : public Detector, protected HTTPRequestable {
     public:
-        CURLDownloader() noexcept;
-        virtual ~CURLDownloader() noexcept;
+        /// IDetector
+        virtual Detector::Result detect() override final;
+        
+        DynDnsCom() = default;
+        virtual ~DynDnsCom() noexcept = default;
     };
     
+} // namespace Detectors
 } // namespace DetectIP
 
-#endif // !__DETECTIP_CURL_DOWNLOADER_HPP__
+#endif // !__DETECTIP_DETECTORS_DYNDNS_COM_HPP__

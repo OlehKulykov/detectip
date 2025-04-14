@@ -53,5 +53,13 @@ namespace DetectIP {
         return std::string();
     }
     
+    /// IConfigurable
+    std::shared_ptr<IConfig> Detector::config() const noexcept {
+        return _config;
+    }
+    
+    void Detector::setConfig(const std::shared_ptr<IConfig> & config) {
+        _config = config;
+    }
+    
 } // namespace DetectIP
-

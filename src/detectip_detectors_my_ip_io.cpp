@@ -25,16 +25,22 @@
 #include <strings.h>
 
 #include "detectip_detectors_my_ip_io.hpp"
+#include "detectip_rapidjson.hpp"
 
 namespace DetectIP {
 namespace Detectors {
     
-    std::pair<std::string, std::string> MyIpIo::detect() {
-        std::pair<std::string, std::string> ips;
+    Detector::Result MyIpIo::detect() {
+        const auto config = this->config();
+        if (!config) {
+            throw std::runtime_error("No config");
+        }
+        
+        Detector::Result ips;
         
         for (size_t i = 0; i < 2; i++) {
-            const auto response = get(i ? "https://api.my-ip.io/v2/ip.json" : "https://api4.my-ip.io/v2/ip.json");
-            const auto doc = parseJson(response);
+            const auto response = GET(i ? config->get("i", "b") : config->get("i", "a"));
+            const std::shared_ptr<RJDocument> doc(static_cast<RJDocument *>(parseJson(response)));
             const auto successIt = doc->FindMember("success");
             const auto ipIt = doc->FindMember("ip");
             const auto typeIt = doc->FindMember("type");
