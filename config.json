@@ -1,0 +1,61 @@
+{
+    "a" : {
+        "_" : "whatismyip.com,free key,24 requests per day",
+        "a" : "https://api.whatismyip.com/ip.php?output=json"
+    },
+    
+    "b" : {
+        "_" : "bigdatacloud.com,a-v4,'b'-v6",
+        "a" : "https://api.bigdatacloud.net/data/client-ip",
+        "b" : "https://api-bdc.net/data/client-ip"
+    },
+    
+    "c" : {
+        "_" : "",
+        "a" : "http://ip-api.com/json"
+    },
+    
+    "d" : {
+        "_" : "",
+        "a" : "https://api.ipify.org/?format=json"
+    },
+    
+    "e" : {
+        "_" : "",
+        "a" : "https://ipinfo.io/json"
+    },
+    
+    "f" : {
+        "_" : "",
+        "a" : "https://ipv4.iplocation.net",
+        "b" : "https://api.iplocation.net/?cmd=get-ip"
+    },
+    
+    "g" : {
+        "_" : "",
+        "a" : "https://api.ipy.ch?format=json"
+    },
+    
+    "h" : {
+        "_" : "",
+        "a" : "https://ipv4.jsonip.com",
+        "b" : "https://jsonip.com"
+    },
+    
+    "i" : {
+        "_" : "",
+        "a" : "https://api4.my-ip.io/v2/ip.json",
+        "b" : "https://api.my-ip.io/v2/ip.json"
+    },
+    
+    "j" : {
+        "_" : "",
+        "a" : "https://ipv4.seeip.org/jsonip",
+        "b" : "https://ipv6.seeip.org/jsonip"
+    },
+    
+    "k" : {
+        "_" : "",
+        "a" : "http://checkip.dyndns.com"
+    }
+}
